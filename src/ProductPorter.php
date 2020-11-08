@@ -3,14 +3,10 @@
    namespace Grayl\Store\Product;
 
    use Grayl\Config\ConfigPorter;
-   use Grayl\Config\Controller\ConfigController;
    use Grayl\Mixin\Common\Entity\KeyedDataBag;
    use Grayl\Mixin\Common\Traits\StaticTrait;
    use Grayl\Store\Product\Controller\ProductController;
-   use Grayl\Store\Product\Entity\ProductData;
    use Grayl\Store\Product\Entity\ProductDiscount;
-   use Grayl\Store\Product\Service\ProductService;
-   use Grayl\Store\Sale\SalePorter;
 
    /**
     * Front-end for the Product package
@@ -24,18 +20,11 @@
       use StaticTrait;
 
       /**
-       * The name of the config file for the Product package
+       * The name of the config folder where product config files are stored
        *
        * @var string
        */
-      private string $config_file = 'store.product.php';
-
-      /**
-       * The config instance for the Product package
-       *
-       * @var ConfigController
-       */
-      private ConfigController $config;
+      private string $config_folder = 'store-product';
 
       /**
        * A KeyedDataBag that holds previously created ProductControllers
@@ -53,97 +42,29 @@
       public function __construct ()
       {
 
-         // Create the config instance from the config file
-         $this->config = ConfigPorter::getInstance()
-                                     ->newConfigControllerFromFile( $this->config_file );
-
          // Create a KeyedDataBag for storing products
          $this->saved_products = new KeyedDataBag();
       }
 
 
       /**
-       * Changes the default config file being used
+       * Loads a ProductController from a config file
        *
-       * @param string $config_file The new config file to use
-       *
-       * @throws \Exception
-       */
-      public function setConfigFile ( string $config_file ): void
-      {
-
-         // Set the new config file value
-         $this->config_file = $config_file;
-
-         // Create the config instance from the config file
-         $this->config = ConfigPorter::getInstance()
-                                     ->newConfigControllerFromFile( $config_file );
-      }
-
-
-      /**
-       * Creates a new ProductController using data from the product ConfigController
-       *
-       * @param string $sku The unique SKU of the product to load from the config
+       * @param string $sku The unique SKU of the product to load from the config folder
        *
        * @return ProductController
        * @throws \Exception
        */
-      private function newProductControllerFromConfig ( string $sku ): ProductController
+      private function loadProductControllerFromConfigFile ( string $sku ): ProductController
       {
 
-         // Make sure the SKU given has a config
-         if ( empty( $this->config->getConfig( $sku ) ) ) {
-            // Throw an error and exit
-            throw new \Exception( 'Product data could not be found in the config.' );
-         }
+         // Grab the product's config file
+         /** @var  $product_controller ProductController */
+         $product_controller = ConfigPorter::getInstance()
+                                           ->includeConfigFile( $this->config_folder . '/' . $sku . '.php' );
 
-         // Request a new ProductData entity
-         $product_data = new ProductData( $this->config->getConfig( $sku )[ 'sku' ],
-                                          $this->config->getConfig( $sku )[ 'name' ],
-                                          $this->config->getConfig( $sku )[ 'price' ],
-                                          $this->config->getConfig( $sku )[ 'tags' ],
-                                          $this->config->getConfig( $sku )[ 'settings' ] );
-
-         // Check for ProductDiscounts
-         $product_discount = $this->findProductDiscountFromConfig( $sku );
-
-         // Return a ProductController
-         return new ProductController( $product_data,
-                                       $product_discount,
-                                       new ProductService() );
-      }
-
-
-      /**
-       * Checks for a ProductDiscount object for a product
-       *
-       * @param string $sku The unique SKU of the product to load from the config
-       *
-       * @return ProductDiscount
-       * @throws \Exception
-       */
-      private function findProductDiscountFromConfig ( string $sku ): ?ProductDiscount
-      {
-
-         // Make sure the SKU given has a config
-         if ( empty( $this->config->getConfig( $sku ) ) ) {
-            // Throw an error and exit
-            throw new \Exception( 'Product data could not be found in the config.' );
-         }
-
-         // Check for ProductDiscounts if a sale is specified
-         if ( ! empty( $this->config->getConfig( $sku )[ 'sale' ] ) ) {
-            // Grab the SaleController for this SaleID
-            $sale = SalePorter::getInstance()
-                              ->getSavedSaleController( $this->config->getConfig( $sku )[ 'sale' ] );
-
-            // Return what was found from the tag search
-            return $sale->findProductDiscountFromTags( $this->config->getConfig( $sku )[ 'tags' ] );
-         }
-
-         // No product discount found
-         return null;
+         // Return the ProductController
+         return $product_controller;
       }
 
 
@@ -164,7 +85,7 @@
          // If we don't have an entity for this controller yet, create one
          if ( empty ( $controller ) ) {
             // Request the ProductController
-            $controller = $this->newProductControllerFromConfig( $sku );
+            $controller = $this->loadProductControllerFromConfigFile( $sku );
 
             // Save it for re-use
             $this->saved_products->setVariable( $sku,
