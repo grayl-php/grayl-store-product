@@ -4,7 +4,6 @@
 
    use Grayl\Store\Product\Controller\ProductController;
    use Grayl\Store\Product\ProductPorter;
-   use Grayl\Store\Sale\SalePorter;
    use PHPUnit\Framework\TestCase;
 
    /**
@@ -14,24 +13,6 @@
     */
    class ProductControllerTest extends TestCase
    {
-
-      /**
-       * Test setup for test environment
-       *
-       * @throws \Exception
-       */
-      public static function setUpBeforeClass (): void
-      {
-
-         // Change the product config file location to the test file
-         ProductPorter::getInstance()
-                      ->setConfigFile( 'test/store.product.php' );
-
-         // Change the sale config file location to the test file
-         SalePorter::getInstance()
-                   ->setConfigFile( 'test/store.sale.php' );
-      }
-
 
       /**
        * Tests the creation of ProductController object
