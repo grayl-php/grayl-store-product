@@ -20,7 +20,6 @@
   "require": {
     "grayl/config": "^1.1",
     "grayl/mixin-common": "^1.0",
-    "grayl/store-sale": "^1.1",
     "php": "~7.4",
     "ext-bcmath": "*"
   },
