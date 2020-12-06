@@ -129,6 +129,19 @@
 
 
       /**
+       * Sets a ProductDiscount to the controller
+       *
+       * @param ?ProductDiscount $product_discount The ProductDiscount entity to set
+       */
+      public function setProductDiscount ( ?ProductDiscount $product_discount ): void
+      {
+
+         // Set the ProductDiscount
+         $this->product_discount = $product_discount;
+      }
+
+
+      /**
        * Returns true if a ProductController has a ProductDiscount set
        *
        * @return bool
@@ -165,6 +178,19 @@
          // Return the discount as dollars
          return $this->product_service->getProductDiscountInDollars( $this->product_data,
                                                                      $this->product_discount );
+      }
+
+
+      /**
+       * Gets the array of tags
+       *
+       * @return string[]
+       */
+      public function getProductTags (): array
+      {
+
+         // Return the array of product tags
+         return $this->product_data->getTags();
       }
 
    }
