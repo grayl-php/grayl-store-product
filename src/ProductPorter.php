@@ -6,7 +6,9 @@
    use Grayl\Mixin\Common\Entity\KeyedDataBag;
    use Grayl\Mixin\Common\Traits\StaticTrait;
    use Grayl\Store\Product\Controller\ProductController;
+   use Grayl\Store\Product\Entity\ProductData;
    use Grayl\Store\Product\Entity\ProductDiscount;
+   use Grayl\Store\Product\Service\ProductService;
 
    /**
     * Front-end for the Product package
@@ -94,6 +96,38 @@
 
          // Return the controller
          return $controller;
+      }
+
+
+      /**
+       * Creates a new ProductController
+       *
+       * @param string   $sku      A unique product SKU (no spaces or special characters)
+       * @param string   $name     The display name of this product
+       * @param float    $price    The price of the product (original price without discounts)
+       * @param string[] $tags     A set of related tags
+       * @param array    $settings Miscellaneous product settings
+       *
+       * @return ProductController
+       */
+      public function newProductController ( string $sku,
+                                             string $name,
+                                             float $price,
+                                             array $tags,
+                                             array $settings ): ProductController
+      {
+
+         // Request a new ProductData entity
+         $product_data = new ProductData( $sku,
+                                          $name,
+                                          $price,
+                                          $tags,
+                                          $settings );
+
+         // Return a ProductController
+         return new ProductController( $product_data,
+                                       null,
+                                       new ProductService() );
       }
 
 
